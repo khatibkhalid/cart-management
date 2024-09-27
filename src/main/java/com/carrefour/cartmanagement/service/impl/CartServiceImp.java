@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,7 @@ public class CartServiceImp implements CartService {
     CartRepository cartRepository;
 
     @Override
+    @Cacheable
     public EntityModel<Cart> findCartById(Long id) {
         return toEntityModel(cartRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cart with id: " + id + " not found")));
     }
