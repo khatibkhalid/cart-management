@@ -1,4 +1,4 @@
-package com.carrefour.cartmanagement;
+package com.carrefour.cartmanagement.integration;
 
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;

@@ -1,43 +1,61 @@
 package com.carrefour.cartmanagement.integration.steps;
 
+import com.carrefour.cartmanagement.entity.Cart;
+import com.carrefour.cartmanagement.exception.ResourceNotFoundException;
+import com.carrefour.cartmanagement.repository.CartRepository;
+import com.carrefour.cartmanagement.service.CartService;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.hateoas.EntityModel;
 
-public class CartManagementSteps {
-    @Given("the following products exist:")
-    public void the_following_products_exist(io.cucumber.datatable.DataTable dataTable) {
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+@SpringBootTest public class CartManagementSteps {
+    @MockBean
+    private CartRepository cartRepository;
+
+    @Autowired
+    private CartService cartService;
+
+    private EntityModel<Cart> response;
+    private String errorMessage;
+
+    @Given("a cart with ID {long} exists")
+    public void a_cart_with_id_exists(Long id) {
+        Cart cart = new Cart();
+        cart.setId(id);
+        when(cartRepository.findById(id)).thenReturn(Optional.of(cart));
     }
 
-    @When("I add {string} to my cart")
-    public void i_add_to_my_cart(String productName) {
+    @When("I request the cart with ID {long}")
+    public void i_request_the_cart_with_id(Long id) {
+        try {
+            response = cartService.findCartById(id);
+        } catch (ResourceNotFoundException e) {
+            errorMessage = e.getMessage();
+        }
     }
 
-    @Then("my cart should have {int} item with name {string}")
-    public void my_cart_should_have_item_with_name(int quantity, String productName) {
+    @Then("I should receive the cart details")
+    public void i_should_receive_the_cart_details() {
+        assertNotNull(response);
+        assertEquals(1L, response.getContent().getId());
     }
 
-    @When("I remove {string} from my cart")
-    public void i_remove_from_my_cart(String productName) {
+    @Then("the response should contain a self link")
+    public void the_response_should_contain_a_self_link() {
+        assertTrue(response.hasLink("self"));
     }
 
-    @Then("my cart should be empty")
-    public void my_cart_should_be_empty() {
-    }
-
-    @When("I confirm my cart")
-    public void i_confirm_my_cart() {
-    }
-
-    @Then("my cart should be confirmed")
-    public void my_cart_should_be_confirmed() {
-    }
-
-    @When("I check my cart status")
-    public void i_check_my_cart_status() {
-    }
-
-    @Then("I should see the status as {string}")
-    public void i_should_see_the_status_as(String status) {
+    @Then("I should receive an error message")
+    public void i_should_receive_an_error_message() {
+        assertNotNull(errorMessage);
     }
 }
