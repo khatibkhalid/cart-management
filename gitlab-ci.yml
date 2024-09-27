@@ -1,0 +1,49 @@
+image: maven:3.9.0-openjdk-21
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  NEXUS_URL: "http://carrefour-nexus-repo:8081/repository/maven-releases/"
+  NEXUS_USERNAME: $NEXUS_USERNAME
+  NEXUS_PASSWORD: $NEXUS_PASSWORD
+
+before_script:
+  - echo "Setting up Maven repository"
+  - mkdir -p $MAVEN_OPTS
+  - echo "Maven repository set up"
+
+build:
+  stage: build
+  script:
+    - echo "Building the application..."
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 week
+
+test:
+  stage: test
+  script:
+    - echo "Running tests..."
+    - mvn test
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying application..."
+    - mvn deploy:deploy-file \
+      -DgroupId=com.carrefour \
+      -DartifactId=cart \
+      -Dversion=1.0.0 \
+      -Dpackaging=jar \
+      -Dfile=target/cart-1.0.0.jar \
+      -DrepositoryId=nexus-releases \
+      -Durl=$NEXUS_URL \
+      -Dusername=$NEXUS_USERNAME \
+      -Dpassword=$NEXUS_PASSWORD
+    - echo "Deployment complete!"
