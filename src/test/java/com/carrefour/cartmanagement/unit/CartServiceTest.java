@@ -4,13 +4,18 @@ import com.carrefour.cartmanagement.entity.Cart;
 import com.carrefour.cartmanagement.exception.ResourceNotFoundException;
 import com.carrefour.cartmanagement.repository.CartRepository;
 import com.carrefour.cartmanagement.service.CartService;
+import com.carrefour.cartmanagement.service.impl.CartServiceImp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,7 +27,7 @@ public class CartServiceTest {
     private CartRepository cartRepository;
 
     @InjectMocks
-    private CartService cartService;
+    private CartServiceImp cartService;
 
     private Cart cart;
 
@@ -57,4 +62,26 @@ public class CartServiceTest {
         assertEquals("Cart with id: 1 not found", exception.getMessage());
         verify(cartRepository, times(1)).findById(1L);
     }
+
+    @Test
+    public void testFindAll_Success() {
+        // Arrange
+        Cart cart1 = new Cart();
+        cart1.setId(1L);
+        Cart cart2 = new Cart();
+        cart2.setId(2L);
+        List<Cart> carts = List.of(cart1, cart2);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(cartRepository.findAll(pageable)).thenReturn(new PageImpl<>(carts, pageable, carts.size()));
+
+        var result = cartService.findAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(1L, result.getContent().get(0).getContent().getId());
+        assertEquals(2L, result.getContent().get(1).getContent().getId());
+        verify(cartRepository, times(1)).findAll(pageable);
+    }
+
 }

@@ -9,6 +9,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -30,6 +33,12 @@ public class CartServiceImp implements CartService {
     @Override
     public EntityModel<Cart> findCartById(Long id) {
         return toEntityModel(cartRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cart with id: " + id + " not found")));
+    }
+
+    @Override
+    public Page<EntityModel<Cart>> findAll(Pageable pageable) {
+        List<EntityModel<Cart>> carts = cartRepository.findAll(pageable).stream().map(cart -> toEntityModel(cart)).collect(Collectors.toUnmodifiableList());
+        return new PageImpl<>(carts,pageable,carts.size()) ;
     }
 
     private EntityModel<Cart> toEntityModel(Cart cart) {
